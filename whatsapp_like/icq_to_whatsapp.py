@@ -18,10 +18,6 @@ def getChatInfo() -> dict:
 
     members_map = {}
     for member in contacts:
-        # firstName = member.get('anketa').get('firstName')
-        # lastName = member.get('anketa').get('lastName')
-        # sn = member.get('anketa').get('sn')
-
         members_map.update({member.aimId: {'aimId': member.aimId,
                                            'friendly': member.friendly,
 
@@ -69,14 +65,19 @@ def parseGroup(folder='Развитие_E___'):
 
             USER = members_map.get(SENDER, 'NoName').get('friendly', 'NoName')
 
+            TEXT_parts = None
             if msg.get('parts'):
                 for parts in msg.get('parts'):
-                    if parts.get('captionedContent'):
-                        TEXT_parts = parts.get('captionedContent', {}).get('caption')
 
+                    if parts.get('mediaType') == 'quote':
+                        # забиваем на цитату, не подходит формат
+                        continue
+
+                    if parts.get('captionedContent'):
+                        # только текст, чтобы не парсить
+                        TEXT_parts = parts.get('captionedContent', {}).get('caption')
                     else:
                         TEXT_parts = parts.get('text')
-
 
                     if TEXT_parts:
                         if 'files.icq.net' in TEXT_parts:
@@ -118,6 +119,10 @@ def parseGroup(folder='Развитие_E___'):
                         }))
 
                     if TEXT:
+                        if TEXT_parts:
+                            if TEXT == TEXT_parts:
+                                continue
+
                         DATE_caption = datetime.fromtimestamp(msg.get('time')) + timedelta(seconds=1)
                         results.append(data_format.get('message').format(**{
                             'DATE': DATE_caption.strftime('%d.%m.%Y, %H:%M:%S'),
@@ -136,6 +141,7 @@ def parseGroup(folder='Развитие_E___'):
     with open(f'{folder}/_chat.txt', 'w+') as f:
         f.write('\n'.join(list(reversed(results))))
 
+    zipAndDel(folder)
     return
 
 
@@ -188,12 +194,6 @@ def parseChat(folder='Вячеслав_Крестиненко'):
                         rgb_im = im.convert('RGB')
                         rgb_im.save(dst)
 
-                        # try:
-                        #     shutil.copy(src, dst)
-                        #
-                        # except:
-                        #     print(f'Не удалось скопировать файл {file}')
-
                         results.append(data_format.get('file').format(**{
                             'DATE': DATE,
                             'FILE_NAME': new_name,
@@ -218,6 +218,13 @@ def parseChat(folder='Вячеслав_Крестиненко'):
         f.write('\n'.join(list(reversed(results))))
 
     return
+
+
+def zipAndDel(folder: str):
+    name = folder.split('/')[-1]
+
+    shutil.make_archive(f'results/WhatsApp Chat - {name}', 'zip', folder)
+    shutil.rmtree(folder)
 
 
 if __name__ == '__main__':
