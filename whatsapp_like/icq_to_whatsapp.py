@@ -5,6 +5,8 @@ from pathlib import Path
 from datetime import datetime, timedelta
 import shutil
 
+from tqdm import tqdm
+
 from config import settings
 from utils import get_contacts_from_json
 from PIL import Image
@@ -40,7 +42,8 @@ def createFolders(name: str) -> str:
     return f'{settings.directory}/{name}'
 
 
-def parseGroup(folder='Развитие_E___'):
+def parseGroup(folder: str):
+    dst_folder = createFolders(folder)
     results = []
     members_map = getChatInfo()
 
@@ -51,9 +54,9 @@ def parseGroup(folder='Развитие_E___'):
     for file in files:
         map.update({str(re.search(r'data_(\d+).json', file).group(1)): file})
 
-    for i in range(1, len(files)):
+    for i in tqdm(range(1, len(files))):
         file = map.get(str(i))
-        print(file)
+        # print(file)
 
         with open(f'{BASE_DIR}/results/{folder}/json/{file}', 'r') as f:
             data = json.load(f)
@@ -137,15 +140,14 @@ def parseGroup(folder='Развитие_E___'):
                         'USER': USER,
                     }))
 
-    folder = createFolders(folder)
-    with open(f'{folder}/_chat.txt', 'w+') as f:
+    with open(f'{dst_folder}/_chat.txt', 'w+') as f:
         f.write('\n'.join(list(reversed(results))))
 
-    zipAndDel(folder)
+    zipAndDel(dst_folder)
     return
 
 
-def parseChat(folder='Вячеслав_Крестиненко'):
+def parseChat(folder: str):
     results = []
     ME = 'Константин Ковырзин'
     PERSON = ' '.join(folder.split('_'))
@@ -159,9 +161,9 @@ def parseChat(folder='Вячеслав_Крестиненко'):
     for file in files:
         map.update({str(re.search(r'data_(\d+).json', file).group(1)): file})
 
-    for i in range(1, len(files)):
+    for i in tqdm(range(1, len(files))):
         file = map.get(str(i))
-        print(file)
+        # print(file)
 
         with open(f'{BASE_DIR}/results/{folder}/json/{file}', 'r') as f:
             data = json.load(f)
@@ -216,14 +218,15 @@ def parseChat(folder='Вячеслав_Крестиненко'):
 
     with open(f'{src_folder}/_chat.txt', 'w+') as f:
         f.write('\n'.join(list(reversed(results))))
-
+    zipAndDel(src_folder)
     return
 
 
 def zipAndDel(folder: str):
     name = folder.split('/')[-1]
-
+    print('Архивация чата')
     shutil.make_archive(f'results/WhatsApp Chat - {name}', 'zip', folder)
+    print('Удаление временной папки')
     shutil.rmtree(folder)
 
 
@@ -234,11 +237,12 @@ if __name__ == '__main__':
         'message': '[{DATE}] ~ {USER}: {TEXT}',  # 21.10.2020, 10:01:22
     }
 
-    parseGroup()
-    # parseChat()
+    f_name = input(f'Введите название папки с чатом : ')
+    chat_type = input(f'Выберете тип чата 1 - групповой, 2 - личный : ')
 
-    # getChatInfo()
-    # print(data_format.get('message'))
-    # r = parseChat()
-
-    # print('\n'.join(list(reversed(r))))
+    if chat_type == '1':
+        parseGroup(f_name)
+    elif chat_type == '2':
+        parseChat(f_name)
+    else:
+        print(f'Неверный ввод типа чата {chat_type}')
