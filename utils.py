@@ -8,12 +8,20 @@ import requests
 from config import Buddie, settings, UserConfig
 
 
-def get_contacts_from_json() -> List[Buddie]:
+def get_contacts_from_json(ME=False) -> List[Buddie]:
     """Получаем список контактов"""
     with open(settings.uset_contacts, 'r', encoding='utf-8') as f:
         text = f.read()
 
     data = json.loads(text)
+
+    if ME:
+        me = data.get('response').get('data').get('events')[1].get('eventData')
+        return [Buddie(aimId=me.get('aimId'),
+                       userType=me.get('userType'),
+                       chatType=me.get('chatType'),
+                       friendly=me.get('friendly')
+                       )]
 
     # список контактов
     buddies = []

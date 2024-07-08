@@ -1,4 +1,9 @@
 /results
+/.idea
+/whatsapp_like/*.zip
+/whatsapp_like/*.txt
+/whatsapp_like/results
+/whatsapp_like/example
 web.icq.com.har
 contacts.json
 /user_data/
