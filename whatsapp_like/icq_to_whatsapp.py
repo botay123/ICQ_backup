@@ -58,7 +58,7 @@ def parseGroup(folder: str):
         file = map.get(str(i))
         # print(file)
 
-        with open(f'{BASE_DIR}/results/{folder}/json/{file}', 'r') as f:
+        with open(f'{BASE_DIR}/results/{folder}/json/{file}', 'r', encoding='utf-8') as f:
             data = json.load(f)
 
         for msg in data:
@@ -66,7 +66,7 @@ def parseGroup(folder: str):
             TEXT = msg.get('text')
             SENDER = msg.get('chat').get('sender')
 
-            USER = members_map.get(SENDER, 'NoName').get('friendly', 'NoName')
+            USER = members_map.get(SENDER, {}).get('friendly', 'NoName')
 
             TEXT_parts = None
             if msg.get('parts'):
@@ -140,7 +140,7 @@ def parseGroup(folder: str):
                         'USER': USER,
                     }))
 
-    with open(f'{dst_folder}/_chat.txt', 'w+') as f:
+    with open(f'{dst_folder}/_chat.txt', 'w+', encoding='utf-8') as f:
         f.write('\n'.join(list(reversed(results))))
 
     zipAndDel(dst_folder)
