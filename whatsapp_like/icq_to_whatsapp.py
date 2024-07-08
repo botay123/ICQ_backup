@@ -1,3 +1,6 @@
+import sys
+sys.path.append('..')
+
 import json
 import os
 import re
@@ -111,15 +114,16 @@ def parseGroup(folder: str):
 
                         TEXT = file.get('caption')
 
-                        im = Image.open(src)
-                        rgb_im = im.convert('RGB')
-                        rgb_im.save(dst)
+                        if os.path.isfile(src):
+                            im = Image.open(src)
+                            rgb_im = im.convert('RGB')
+                            rgb_im.save(dst)
 
-                        results.append(data_format.get('file').format(**{
-                            'DATE': DATE,
-                            'FILE_NAME': new_name,
-                            'USER': USER,
-                        }))
+                            results.append(data_format.get('file').format(**{
+                                'DATE': DATE,
+                                'FILE_NAME': new_name,
+                                'USER': USER,
+                            }))
 
                     if TEXT:
                         if TEXT_parts:
@@ -168,7 +172,7 @@ def parseChat(folder: str, ME: str):
         file = map.get(str(i))
         # print(file)
 
-        with open(f'{BASE_DIR}/results/{folder}/json/{file}', 'r') as f:
+        with open(f'{BASE_DIR}/results/{folder}/json/{file}', 'r', encoding='utf-8') as f:
             data = json.load(f)
 
         for msg in data:
@@ -195,15 +199,16 @@ def parseChat(folder: str, ME: str):
 
                         TEXT = file.get('caption', '')
 
-                        im = Image.open(src)
-                        rgb_im = im.convert('RGB')
-                        rgb_im.save(dst)
+                        if os.path.isfile(src):
+                            im = Image.open(src)
+                            rgb_im = im.convert('RGB')
+                            rgb_im.save(dst)
 
-                        results.append(data_format.get('file').format(**{
-                            'DATE': DATE,
-                            'FILE_NAME': new_name,
-                            'USER': USER,
-                        }))
+                            results.append(data_format.get('file').format(**{
+                                'DATE': DATE,
+                                'FILE_NAME': new_name,
+                                'USER': USER,
+                            }))
 
                     if TEXT:
                         DATE_caption = datetime.fromtimestamp(msg.get('time')) + timedelta(seconds=1)
@@ -219,7 +224,7 @@ def parseChat(folder: str, ME: str):
                     'USER': USER,
                 }))
 
-    with open(f'{src_folder}/_chat.txt', 'w+') as f:
+    with open(f'{src_folder}/_chat.txt', 'w+', encoding='utf-8') as f:
         f.write('\n'.join(list(reversed(results))))
     zipAndDel(src_folder)
     return
