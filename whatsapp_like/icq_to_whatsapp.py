@@ -64,9 +64,9 @@ def parseGroup(folder: str):
         for msg in data:
             DATE = datetime.fromtimestamp(msg.get('time')).strftime('%d.%m.%Y, %H:%M:%S')
             TEXT = msg.get('text')
-            SENDER = msg.get('chat').get('sender')
+            SENDER = msg.get('chat', {}).get('sender')
 
-            USER = members_map.get(SENDER, {}).get('friendly', 'NoName')
+            USER = members_map.get(SENDER, {}).get('friendly', SENDER)
 
             TEXT_parts = None
             if msg.get('parts'):
@@ -140,6 +140,9 @@ def parseGroup(folder: str):
                         'USER': USER,
                     }))
 
+    # замена id на имена при обращении в сообщениях
+    results = replaceId(members_map, results)
+
     with open(f'{dst_folder}/_chat.txt', 'w+', encoding='utf-8') as f:
         f.write('\n'.join(list(reversed(results))))
 
@@ -147,9 +150,9 @@ def parseGroup(folder: str):
     return
 
 
-def parseChat(folder: str):
+def parseChat(folder: str, ME: str):
     results = []
-    ME = 'Константин Ковырзин'
+    # ME = 'Константин Ковырзин'
     PERSON = ' '.join(folder.split('_'))
 
     files = os.listdir(f'{BASE_DIR}/results/{folder}/json/')
@@ -230,6 +233,21 @@ def zipAndDel(folder: str):
     shutil.rmtree(folder)
 
 
+def replaceId(members_map: dict, results: list) -> list:
+    data = []
+    for res in results:
+        persons = re.findall(r'@\[(\d+)]', res, re.DOTALL)
+        if persons:
+            for user_id in persons:
+                user_name = members_map.get(user_id, {}).get('friendly')
+                if user_name:
+                    res: str = res.replace(user_id, user_name)
+
+        data.append(res)
+
+    return data
+
+
 if __name__ == '__main__':
     BASE_DIR = Path(__file__).resolve().parent.parent
     data_format = {
@@ -243,6 +261,7 @@ if __name__ == '__main__':
     if chat_type == '1':
         parseGroup(f_name)
     elif chat_type == '2':
-        parseChat(f_name)
+        ME = input(f'Введите cвое имя : ')
+        parseChat(f_name, ME)
     else:
         print(f'Неверный ввод типа чата {chat_type}')
